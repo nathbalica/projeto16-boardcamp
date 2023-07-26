@@ -9,3 +9,11 @@ const configDatabase = {
 };
 
 export const db = new Pool(configDatabase);
+
+db.query("SELECT 1")
+  .then(() => {
+    console.log("Conexão com o banco de dados estabelecida com sucesso!");
+  })
+  .catch((error) => {
+    console.error("Erro ao conectar ao banco de dados:", error.message);
+  });
