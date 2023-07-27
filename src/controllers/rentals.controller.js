@@ -2,13 +2,46 @@ import { db } from "../database/database.connection.js";
 import dayjs from "dayjs";
 
 export async function getRental(req, res) {
+    const customerId = req.query.customerId;
+    const gameId = req.query.gameId;
+    const offset = req.query.offset;
+    const limit = req.query.limit;
+
     try {
-        const rentals = await db.query(`
-            select rentals.*, games.name as "gameName", customers.name as "customerName"
-            from rentals
-            join games on rentals."gameId"=games.id 
-            join customers on rentals."customerId"=customers.id;`
-        )
+        let query = `
+            SELECT rentals.*, games.name AS "gameName", customers.name AS "customerName"
+            FROM rentals
+            JOIN games ON rentals."gameId"=games.id 
+            JOIN customers ON rentals."customerId"=customers.id
+        `;
+
+        let queryParams = [];
+
+        if (customerId) {
+            query += ` WHERE customers.id = $${queryParams.length + 1}`;
+            queryParams.push(customerId);
+        }
+
+        if (gameId) {
+            if (queryParams.length > 0) {
+                query += ` AND games.id = $${queryParams.length + 1}`;
+            } else {
+                query += ` WHERE games.id = $${queryParams.length + 1}`;
+            }
+            queryParams.push(gameId);
+        }
+
+        if (offset) {
+            query += ` OFFSET $${queryParams.length + 1}`;
+            queryParams.push(offset);
+        }
+
+        if (limit) {
+            query += ` LIMIT $${queryParams.length + 1}`;
+            queryParams.push(limit);
+        }
+
+        const rentals = await db.query(query, queryParams);
 
         const formattedRentals = rentals.rows.map((rental) => ({
             id: rental.id,
@@ -31,9 +64,10 @@ export async function getRental(req, res) {
 
         res.send(formattedRentals);
     } catch (err) {
-        res.status(500).send(err.message)
+        res.status(500).send(err.message);
     }
 }
+
 
 export async function createRental(req, res) {
     const { customerId, gameId, daysRented } = req.body
@@ -79,15 +113,15 @@ export async function returnRental(req, res) {
     }
 }
 
-export async function deleteRental(req, res){
+export async function deleteRental(req, res) {
     const { id } = req.params;
     if (!id) return sendStatus(404);
 
-    try{
+    try {
         await db.query(`DELETE FROM rentals WHERE id = $1`, [id])
         res.sendStatus(200)
 
-    }catch(err){
+    } catch (err) {
         res.status(500).send(err.message);
     }
 }

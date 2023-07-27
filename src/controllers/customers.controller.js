@@ -1,11 +1,34 @@
 import { db } from "../database/database.connection.js";
 
-
 export async function getCustomers(req, res) {
+    const cpf = req.query.cpf;
+    const offset = req.query.offset;
+    const limit = req.query.limit;
+
     try {
-        const queryCustomer = 'SELECT * FROM customers'
-        const customers = await db.query(queryCustomer)
-        res.send(customers.rows)
+
+        let customer;
+        let queryParams = [];
+        let queryString = 'SELECT * FROM customers';
+
+        if (cpf) {
+            queryParams.push(`${cpf}%`);
+            queryString += ' WHERE cpf ILIKE $' + queryParams.length;
+        }
+
+        if (offset) {
+            queryParams.push(offset);
+            queryString += ' OFFSET $' + queryParams.length;
+        }
+
+        if (limit) {
+            queryParams.push(limit);
+            queryString += ' LIMIT $' + queryParams.length;
+        }
+
+        customer = await db.query(queryString, [...queryParams]);
+
+        res.send(customer.rows);
     } catch (err) {
         res.status(500).send(err.message);
     }
@@ -35,7 +58,7 @@ export async function createCustomers(req, res) {
     try {
         await db.query(
             `INSERT INTO customers (name, phone, cpf, birthday) VALUES ($1, $2, $3, $4)`,
-             [name, phone, cpf, birthday]
+            [name, phone, cpf, birthday]
         )
 
         res.sendStatus(201)
@@ -44,7 +67,7 @@ export async function createCustomers(req, res) {
     }
 }
 
-export async function updateCustomers(req, res){
+export async function updateCustomers(req, res) {
     const { name, phone, cpf, birthday } = req.body
     const { id } = req.params;
     if (!id) return sendStatus(404);
@@ -52,7 +75,7 @@ export async function updateCustomers(req, res){
     try {
         await db.query(
             `UPDATE customers SET name = $1, phone = $2, cpf = $3, birthday = $4 WHERE id = $5;`,
-             [name, phone, cpf, birthday, id]
+            [name, phone, cpf, birthday, id]
         )
 
         res.sendStatus(200)
