@@ -4,6 +4,9 @@ export async function getGames(req, res){
     const name = req.query.name;
     const offset = req.query.offset;
     const limit = req.query.limit;
+    const order = req.query.order;
+    const desc = req.query.desc;
+
     try{
         let games;
         let queryParams = [];
@@ -22,6 +25,11 @@ export async function getGames(req, res){
         if (limit) {
             queryParams.push(limit);
             queryString += ' LIMIT $' + queryParams.length;
+        }
+
+        if (order) {
+            const orderBy = desc === 'true' ? 'DESC' : 'ASC';
+            queryString += ` ORDER BY ${order} ${orderBy}`;
         }
 
         games = await db.query(queryString, [...queryParams]);

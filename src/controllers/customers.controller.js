@@ -4,12 +4,14 @@ export async function getCustomers(req, res) {
     const cpf = req.query.cpf;
     const offset = req.query.offset;
     const limit = req.query.limit;
+    const order = req.query.order;
+    const desc = req.query.desc;
 
     try {
 
         let customer;
         let queryParams = [];
-        let queryString = 'SELECT * FROM customers';
+        let queryString = 'SELECT id, name, phone, cpf, TO_CHAR(birthday, \'YYYY-MM-DD\') as birthday FROM customers';
 
         if (cpf) {
             queryParams.push(`${cpf}%`);
@@ -24,6 +26,11 @@ export async function getCustomers(req, res) {
         if (limit) {
             queryParams.push(limit);
             queryString += ' LIMIT $' + queryParams.length;
+        }
+
+        if (order) {
+            const orderBy = desc === 'true' ? 'DESC' : 'ASC';
+            queryString += ` ORDER BY ${order} ${orderBy}`;
         }
 
         customer = await db.query(queryString, [...queryParams]);

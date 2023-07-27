@@ -6,13 +6,19 @@ export async function getRental(req, res) {
     const gameId = req.query.gameId;
     const offset = req.query.offset;
     const limit = req.query.limit;
+    const order = req.query.order;
+    const desc = req.query.desc;
 
     try {
         let query = `
-            SELECT rentals.*, games.name AS "gameName", customers.name AS "customerName"
+            SELECT rentals.*, 
+                TO_CHAR(rentals."rentDate", 'YYYY-MM-DD') as "formattedRentDate",
+                TO_CHAR(rentals."returnDate", 'YYYY-MM-DD') as "formattedReturnDate",
+                games.name AS "gameName",
+                customers.name AS "customerName"
             FROM rentals
-            JOIN games ON rentals."gameId"=games.id 
-            JOIN customers ON rentals."customerId"=customers.id
+            JOIN games ON rentals."gameId" = games.id 
+            JOIN customers ON rentals."customerId" = customers.id
         `;
 
         let queryParams = [];
@@ -41,15 +47,20 @@ export async function getRental(req, res) {
             queryParams.push(limit);
         }
 
+        if (order) {
+            const orderBy = desc === 'true' ? 'DESC' : 'ASC';
+            query += ` ORDER BY ${order} ${orderBy}`;
+        }
+
         const rentals = await db.query(query, queryParams);
 
         const formattedRentals = rentals.rows.map((rental) => ({
             id: rental.id,
             customerId: rental.customerId,
             gameId: rental.gameId,
-            rentDate: rental.rentDate,
+            rentDate: rental.formattedRentDate,
             daysRented: rental.daysRented,
-            returnDate: rental.returnDate,
+            returnDate: rental.formattedReturnDate,
             originalPrice: rental.originalPrice,
             delayFee: rental.delayFee,
             customer: {
@@ -97,8 +108,8 @@ export async function createRental(req, res) {
 
 export async function returnRental(req, res) {
     const { id } = req.params;
-    // const rental = res.locals.rental;
     const delayFee = res.locals.delayFee;
+
 
     try {
         await db.query(`
