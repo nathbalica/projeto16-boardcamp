@@ -60,3 +60,34 @@ export async function createRental(req, res) {
         res.status(500).send(err.message)
     }
 }
+
+export async function returnRental(req, res) {
+    const { id } = req.params;
+    // const rental = res.locals.rental;
+    const delayFee = res.locals.delayFee;
+
+    try {
+        await db.query(`
+        UPDATE rentals
+        SET "returnDate" = Now(), "delayFee" = $1
+        WHERE id = $2;
+      `, [delayFee, id]);
+
+        res.sendStatus(200);
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
+export async function deleteRental(req, res){
+    const { id } = req.params;
+    if (!id) return sendStatus(404);
+
+    try{
+        await db.query(`DELETE FROM rentals WHERE id = $1`, [id])
+        res.sendStatus(200)
+
+    }catch(err){
+        res.status(500).send(err.message);
+    }
+}

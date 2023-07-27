@@ -1,4 +1,5 @@
 import { db } from "../database/database.connection.js";
+import dayjs from "dayjs";
 
 export async function validateCreateRental(req, res, next) {
     const { customerId, gameId } = req.body;
@@ -39,4 +40,53 @@ export async function validateCreateRental(req, res, next) {
         res.status(500).send(error.message);
     }
 }
+
+
+export async function validateReturnRental(req, res, next) {
+    const { id } = req.params;
+
+    try {
+        const rentalQuery = 'SELECT * FROM rentals WHERE id = $1 AND "returnDate" IS NULL';
+        const rentalResult = await db.query(rentalQuery, [id]);
+        const rental = rentalResult.rows[0];
+
+        if (!rental) {
+            return res.status(404).send('Aluguel não encontrado.');
+        }
+
+        if (rental.returnDate) {
+            return res.status(400).send('O aluguel já foi retornado.');
+        }
+        const returnDate = dayjs();
+        const rentDate = dayjs(rental.rentDate);
+        const daysRented = rental.daysRented;
+        const pricePerDay = rental.originalPrice / daysRented;
+        const daysDelayed = Math.max(0, returnDate.diff(rentDate, 'day') - daysRented);
+
+        console.log(daysDelayed, pricePerDay)
+
+        const delayFee = daysDelayed * pricePerDay;
+
+        // res.locals.rental = rental;
+        res.locals.delayFee = delayFee;
+
+        next();
+    } catch (err) {
+        res.status(500).send(err.message);
+    }
+}
+
+export async function validateDeleteRental(req, res, next) {
+    const { id } = req.params;
+
+    const rentalQuery = 'SELECT * FROM rentals WHERE id = $1';
+    const rentalResult = await db.query(rentalQuery, [id]);
+    const { returnDate } = rentalResult.rows[0];
+
+    if (rentalResult.rowCount === 0) return res.status(404).send({ message: "Aluguel não encontrado!" })
+    if (returnDate === null) return res.status(400).send({ message: "Aluguel não está finalizado, não é possível deletar." })
+    next()
+ 
+}
+
 
