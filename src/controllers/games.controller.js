@@ -7,6 +7,9 @@ export async function getGames(req, res){
     const order = req.query.order;
     const desc = req.query.desc;
 
+
+    console.log(order)
+
     try{
         let games;
         let queryParams = [];
@@ -28,9 +31,15 @@ export async function getGames(req, res){
         }
 
         if (order) {
+            const allowedColumns = ['name', 'image', 'stockTotal', 'pricePerDay']; // Add more allowed columns if needed
+            if (!allowedColumns.includes(order)) {
+                return res.status(400).send('Invalid order column.');
+            }
+
             const orderBy = desc === 'true' ? 'DESC' : 'ASC';
-            queryString += ` ORDER BY ${order} ${orderBy}`;
+            queryString += ` ORDER BY "${order}" ${orderBy}`;
         }
+
 
         games = await db.query(queryString, [...queryParams]);
         res.status(200).send(games.rows);

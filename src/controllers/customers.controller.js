@@ -29,6 +29,10 @@ export async function getCustomers(req, res) {
         }
 
         if (order) {
+            const allowedColumns = ['name', 'phone', 'cpf', 'birthday']; // Add more allowed columns if needed
+            if (!allowedColumns.includes(order)) {
+                return res.status(400).send('Invalid order column.');
+            }
             const orderBy = desc === 'true' ? 'DESC' : 'ASC';
             queryString += ` ORDER BY ${order} ${orderBy}`;
         }

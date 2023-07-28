@@ -8,6 +8,9 @@ export async function getRental(req, res) {
     const limit = req.query.limit;
     const order = req.query.order;
     const desc = req.query.desc;
+    const status = req.query.status;
+    const startDate = req.query.startDate;
+
 
     try {
         let query = `
@@ -37,6 +40,24 @@ export async function getRental(req, res) {
             queryParams.push(gameId);
         }
 
+        if (status) {
+            if (status === 'open') {
+                if (queryParams.length > 0) {
+                    query += ' AND "returnDate" IS NULL';
+                } else {
+                    query += ' WHERE "returnDate" IS NULL';
+                }
+            } else if (status === 'closed') {
+                if (queryParams.length > 0) {
+                    query += ' AND "returnDate" IS NOT NULL';
+                } else {
+                    query += ' WHERE "returnDate" IS NOT NULL';
+                }
+            } else {
+                return res.status(400).send('Invalid status parameter.');
+            }
+        }
+
         if (offset) {
             query += ` OFFSET $${queryParams.length + 1}`;
             queryParams.push(offset);
@@ -48,9 +69,23 @@ export async function getRental(req, res) {
         }
 
         if (order) {
+            const allowedColumns = ['customerId', 'gameId', 'rentDate', 'daysRented', 'returnDate', 'originalPrice', 'delayFee']; // Add more allowed columns if needed
+            if (!allowedColumns.includes(order)) {
+                return res.status(400).send('Invalid order column.');
+            }
             const orderBy = desc === 'true' ? 'DESC' : 'ASC';
-            query += ` ORDER BY ${order} ${orderBy}`;
+            query += ` ORDER BY "${order}" ${orderBy}`;
         }
+
+        if (startDate) {
+            if (queryParams.length > 0) {
+                query += ` AND "rentDate" >= $${queryParams.length + 1}`;
+            } else {
+                query += ` WHERE "rentDate" >= $${queryParams.length + 1}`
+            }
+            queryParams.push(startDate);
+        }
+
 
         const rentals = await db.query(query, queryParams);
 
