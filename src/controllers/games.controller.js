@@ -31,7 +31,7 @@ export async function getGames(req, res){
         }
 
         if (order) {
-            const allowedColumns = ['name', 'image', 'stockTotal', 'pricePerDay']; // Add more allowed columns if needed
+            const allowedColumns = ['id', 'name', 'image', 'stockTotal', 'pricePerDay']; // Add more allowed columns if needed
             if (!allowedColumns.includes(order)) {
                 return res.status(400).send('Invalid order column.');
             }

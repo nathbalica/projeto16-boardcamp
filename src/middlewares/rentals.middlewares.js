@@ -50,9 +50,9 @@ export async function validateReturnRental(req, res, next) {
         const rentalResult = await db.query(rentalQuery, [id]);
         const rental = rentalResult.rows[0];
 
-        if (!rental) {
-            return res.status(404).send('Aluguel não encontrado.');
-        }
+        // if (!rental) {
+        //     return res.status(404).send('Aluguel não encontrado.');
+        // }
 
         if (rental.returnDate) {
             return res.status(400).send('O aluguel já foi retornado.');
@@ -81,10 +81,16 @@ export async function validateDeleteRental(req, res, next) {
 
     const rentalQuery = 'SELECT * FROM rentals WHERE id = $1';
     const rentalResult = await db.query(rentalQuery, [id]);
+
+    if (rentalResult.rowCount === 0) {
+        return res.status(404).send({ message: "Aluguel não encontrado!" });
+    }
+
     const { returnDate } = rentalResult.rows[0];
 
-    if (rentalResult.rowCount === 0) return res.status(404).send({ message: "Aluguel não encontrado!" })
-    if (returnDate === null) return res.status(400).send({ message: "Aluguel não está finalizado, não é possível deletar." })
+    if (returnDate === null) {
+        return res.status(400).send({ message: "Aluguel não está finalizado, não é possível deletar." });
+    }
     next()
  
 }

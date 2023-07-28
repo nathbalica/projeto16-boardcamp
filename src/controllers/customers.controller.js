@@ -11,7 +11,7 @@ export async function getCustomers(req, res) {
 
         let customer;
         let queryParams = [];
-        let queryString = 'SELECT id, name, phone, cpf, TO_CHAR(birthday, \'YYYY-MM-DD\') as birthday FROM customers';
+        let queryString = `SELECT id, name, phone, cpf, TO_CHAR(birthday, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS birthday FROM customers`;
 
         if (cpf) {
             queryParams.push(`${cpf}%`);
@@ -29,7 +29,7 @@ export async function getCustomers(req, res) {
         }
 
         if (order) {
-            const allowedColumns = ['name', 'phone', 'cpf', 'birthday']; // Add more allowed columns if needed
+            const allowedColumns = ['id', 'name', 'phone', 'cpf', 'birthday']; // Add more allowed columns if needed
             if (!allowedColumns.includes(order)) {
                 return res.status(400).send('Invalid order column.');
             }

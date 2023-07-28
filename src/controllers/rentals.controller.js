@@ -69,7 +69,7 @@ export async function getRental(req, res) {
         }
 
         if (order) {
-            const allowedColumns = ['customerId', 'gameId', 'rentDate', 'daysRented', 'returnDate', 'originalPrice', 'delayFee']; // Add more allowed columns if needed
+            const allowedColumns = ['id', 'customerId', 'gameId', 'rentDate', 'daysRented', 'returnDate', 'originalPrice', 'delayFee']; // Add more allowed columns if needed
             if (!allowedColumns.includes(order)) {
                 return res.status(400).send('Invalid order column.');
             }
