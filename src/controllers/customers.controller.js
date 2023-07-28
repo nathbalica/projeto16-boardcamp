@@ -9,7 +9,6 @@ export async function getCustomers(req, res) {
 
     try {
 
-        let customer;
         let queryParams = [];
         let queryString = `SELECT id, name, phone, cpf, TO_CHAR(birthday, 'YYYY-MM-DD') AS birthday FROM customers`;
 
@@ -37,10 +36,10 @@ export async function getCustomers(req, res) {
             queryString += ` ORDER BY ${order} ${orderBy}`;
         }
 
-        customer = await db.query(queryString, [...queryParams]);
+        const { rows: customers } = await db.query(queryString, [...queryParams]);
 
         
-        res.send(customer.rows);
+        res.send(customers);
     } catch (err) {
         res.status(500).send(err.message);
     }

@@ -11,7 +11,6 @@ export async function getGames(req, res){
     console.log(order)
 
     try{
-        let games;
         let queryParams = [];
         let queryString = 'SELECT * FROM games';
 
@@ -41,8 +40,8 @@ export async function getGames(req, res){
         }
 
 
-        games = await db.query(queryString, [...queryParams]);
-        res.status(200).send(games.rows);
+        const { rows: games } = await db.query(queryString, [...queryParams]);
+        res.status(200).send(games);
     } catch(err) {
         res.status(500).send(err.message);
     }
