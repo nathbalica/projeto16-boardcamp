@@ -11,7 +11,7 @@ export async function getCustomers(req, res) {
 
         let customer;
         let queryParams = [];
-        let queryString = `SELECT id, name, phone, cpf, TO_CHAR(birthday, 'YYYY-MM-DD"T"HH24:MI:SS.MS"Z"') AS birthday FROM customers`;
+        let queryString = `SELECT id, name, phone, cpf, TO_CHAR(birthday, 'YYYY-MM-DD') AS birthday FROM customers`;
 
         if (cpf) {
             queryParams.push(`${cpf}%`);
@@ -39,7 +39,9 @@ export async function getCustomers(req, res) {
 
         customer = await db.query(queryString, [...queryParams]);
 
-        res.send(customer.rows);
+        
+
+        res.send(customer.rows[0]);
     } catch (err) {
         res.status(500).send(err.message);
     }
