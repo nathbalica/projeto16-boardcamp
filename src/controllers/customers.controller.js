@@ -40,8 +40,7 @@ export async function getCustomers(req, res) {
         customer = await db.query(queryString, [...queryParams]);
 
         
-
-        res.send(customer.rows[0]);
+        res.send(customer.rows);
     } catch (err) {
         res.status(500).send(err.message);
     }
