@@ -86,9 +86,7 @@ export async function validateDeleteRental(req, res, next) {
         return res.status(404).send({ message: "Aluguel não encontrado!" });
     }
 
-    const { returnDate } = rentalResult.rows[0];
-
-    if (returnDate === null) {
+    if (rentalResult.rows[0].returnDate === null) {
         return res.status(400).send({ message: "Aluguel não está finalizado, não é possível deletar." });
     }
     next()
