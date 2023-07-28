@@ -49,11 +49,11 @@ export async function validateReturnRental(req, res, next) {
         const rentalResult = await db.query(`SELECT * FROM rentals WHERE id=$1`, [id]);
         const rental = rentalResult.rows[0];
 
-        if (rental.rowCount === 0) {
+        if (rentalResult.rowCount === 0) {
             return res.status(404).send({ message: "Aluguel não encontrado!" });
         }
 
-        if (rental.rows[0].returnDate !== null) {
+        if (rental.returnDate !== null) {
             return res.status(400).send('O aluguel já foi retornado.');
         }
         const returnDate = dayjs();
