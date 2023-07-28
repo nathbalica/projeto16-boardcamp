@@ -11,7 +11,6 @@ export async function getRental(req, res) {
     const status = req.query.status;
     const startDate = req.query.startDate;
 
-
     try {
         let query = `
             SELECT rentals.*, 
@@ -25,37 +24,52 @@ export async function getRental(req, res) {
         `;
 
         let queryParams = [];
+        let whereAdded = false;
 
         if (customerId) {
             query += ` WHERE customers.id = $${queryParams.length + 1}`;
             queryParams.push(customerId);
+            whereAdded = true;
         }
 
         if (gameId) {
-            if (queryParams.length > 0) {
+            if (whereAdded) {
                 query += ` AND games.id = $${queryParams.length + 1}`;
             } else {
                 query += ` WHERE games.id = $${queryParams.length + 1}`;
+                whereAdded = true;
             }
             queryParams.push(gameId);
         }
 
         if (status) {
             if (status === 'open') {
-                if (queryParams.length > 0) {
+                if (whereAdded) {
                     query += ' AND "returnDate" IS NULL';
                 } else {
                     query += ' WHERE "returnDate" IS NULL';
+                    whereAdded = true;
                 }
             } else if (status === 'closed') {
-                if (queryParams.length > 0) {
+                if (whereAdded) {
                     query += ' AND "returnDate" IS NOT NULL';
                 } else {
                     query += ' WHERE "returnDate" IS NOT NULL';
+                    whereAdded = true;
                 }
             } else {
                 return res.status(400).send('Invalid status parameter.');
             }
+        }
+
+        if (startDate) {
+            if (whereAdded) {
+                query += ` AND "rentDate" >= $${queryParams.length + 1}`;
+            } else {
+                query += ` WHERE "rentDate" >= $${queryParams.length + 1}`
+                whereAdded = true;
+            }
+            queryParams.push(startDate);
         }
 
         if (offset) {
@@ -76,16 +90,6 @@ export async function getRental(req, res) {
             const orderBy = desc === 'true' ? 'DESC' : 'ASC';
             query += ` ORDER BY "${order}" ${orderBy}`;
         }
-
-        if (startDate) {
-            if (queryParams.length > 0) {
-                query += ` AND "rentDate" >= $${queryParams.length + 1}`;
-            } else {
-                query += ` WHERE "rentDate" >= $${queryParams.length + 1}`
-            }
-            queryParams.push(startDate);
-        }
-
 
         const rentals = await db.query(query, queryParams);
 
