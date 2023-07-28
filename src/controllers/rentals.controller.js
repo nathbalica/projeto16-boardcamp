@@ -147,6 +147,7 @@ export async function createRental(req, res) {
 
 export async function returnRental(req, res) {
     const { id } = req.params;
+    if (!id) return sendStatus(404);
     const delayFee = res.locals.delayFee;
 
 

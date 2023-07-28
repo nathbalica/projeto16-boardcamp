@@ -79,8 +79,7 @@ export async function validateReturnRental(req, res, next) {
 export async function validateDeleteRental(req, res, next) {
     const { id } = req.params;
 
-    const rentalQuery = 'SELECT * FROM rentals WHERE id = $1';
-    const rentalResult = await db.query(rentalQuery, [id]);
+    const rentalResult = await db.query(`SELECT * FROM rentals WHERE id=$1`, [id]);
 
     if (rentalResult.rowCount === 0) {
         return res.status(404).send({ message: "Aluguel não encontrado!" });
@@ -92,5 +91,6 @@ export async function validateDeleteRental(req, res, next) {
     next()
  
 }
+
 
 
