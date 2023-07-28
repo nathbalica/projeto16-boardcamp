@@ -42,7 +42,7 @@ export async function getGames(req, res){
 
 
         games = await db.query(queryString, [...queryParams]);
-        res.status(200).send(games.rows[0]);
+        res.status(200).send(games.rows);
     } catch(err) {
         res.status(500).send(err.message);
     }
