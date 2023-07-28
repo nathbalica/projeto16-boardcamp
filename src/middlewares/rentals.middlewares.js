@@ -46,15 +46,14 @@ export async function validateReturnRental(req, res, next) {
     const { id } = req.params;
 
     try {
-        const rentalQuery = 'SELECT * FROM rentals WHERE id = $1 AND "returnDate" IS NULL';
-        const rentalResult = await db.query(rentalQuery, [id]);
+        const rentalResult = await db.query(`SELECT * FROM rentals WHERE id=$1`, [id]);
         const rental = rentalResult.rows[0];
 
-        // if (!rental) {
-        //     return res.status(404).send('Aluguel não encontrado.');
-        // }
+        if (rental.rowCount === 0) {
+            return res.status(404).send({ message: "Aluguel não encontrado!" });
+        }
 
-        if (rental.returnDate) {
+        if (rental.rows[0].returnDate !== null) {
             return res.status(400).send('O aluguel já foi retornado.');
         }
         const returnDate = dayjs();
@@ -63,11 +62,9 @@ export async function validateReturnRental(req, res, next) {
         const pricePerDay = rental.originalPrice / daysRented;
         const daysDelayed = Math.max(0, returnDate.diff(rentDate, 'day') - daysRented);
 
-        console.log(daysDelayed, pricePerDay)
 
         const delayFee = daysDelayed * pricePerDay;
 
-        // res.locals.rental = rental;
         res.locals.delayFee = delayFee;
 
         next();
